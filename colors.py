@@ -10,6 +10,7 @@ class Colors:
     UNDERLINE = '\033[4m'
     ONE = ''
 
+
 class WinColors:
     HEADER = ''
     BLUE = ''
