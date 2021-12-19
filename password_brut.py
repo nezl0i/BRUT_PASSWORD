@@ -41,10 +41,10 @@ def brut_password(passwd, stop_password, pass_mode=None):
             sys.exit()
         if exchange(hex_id, hex_password, port):
             return
-        if str(passwd)[5] == '9':
-            passwd += 2
-        else:
-            passwd += 1
+        passwd += 2 if str(passwd)[5] == '9' else 1
+        #     passwd += 2
+        # else:
+        #     passwd += 1
 
 
 if __name__ == '__main__':
