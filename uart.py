@@ -26,7 +26,6 @@ class UartSerialPort:
             print(f'Port {port_name} not opened or port no available.\n{e.args[1].split(":")[1].strip()}')
             self.sp = None
             sys.exit()
-        self.data = ''
 
     def __str__(self):
         return f'Port {self.sp.port} open' if self.sp else 'Port not opened or port no available'
