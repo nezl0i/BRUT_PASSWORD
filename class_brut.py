@@ -1,15 +1,8 @@
 import sys
+from time import sleep
 from uart import UartSerialPort
 from modbus_crc16 import crc16
 import config as cfg
-from sys import platform
-
-if platform.startswith('win'):
-    from colors import WinColors
-    c = WinColors()
-else:
-    from colors import Colors
-    c = Colors()
 
 
 class Exchange(UartSerialPort):
@@ -18,15 +11,43 @@ class Exchange(UartSerialPort):
 
         self.flag = True
         self.CALL = {'AT': 'AT\r', 'CBST': 'AT+CBST=71,0,1\r', 'CALL': f'ATD{cfg.PHONE}\r'}
+        self.id = format(cfg.PK, '02X')
 
-        self.init()
+        self.timeout = cfg.SERIAL_TIMEOUT
+
+        self.start_passwd = cfg.START_PASSWORD
+        self.stop_passwd = cfg.STOP_PASSWORD
+
+        self.pass_mode = cfg.PASS_MODE
+
+        self.mode = cfg.MODE
+
+        if self.test(self.id):
+            self.init()
+        else:
+            print('Нет ответа от устройства')
+            sys.exit()
 
     def set_flag(self, item):
         self.flag = item
         return self.flag
 
+    def test(self, pk):
+        test = f'{pk} 00 '
+        transfer = bytearray.fromhex(test + crc16(bytearray.fromhex(test)))
+        sys.stdout.write(f'Тест канала связи ...\r')
+        self.write(transfer)
+        buffer = self.read(4)
+        while buffer:
+            # print(f"Ответ от устройства >> {buffer.hex(' ', -1)}\n")
+            sys.stdout.write(f'Тест канала связи - ОК.\n')
+            print('-'*28)
+            sleep(2)
+            return True
+        return False
+
     def init(self):
-        if cfg.CSD:
+        if self.mode == 1:
             self.set_flag(False)
             print(self.CSD_send(self.CALL['AT']))
             print(self.CSD_send(self.CALL['CBST']))
@@ -36,37 +57,40 @@ class Exchange(UartSerialPort):
                 print(calling)
                 if calling == 'Connect OK (9600)\n':
                     self.set_flag(True)
-                    self.set_time(cfg.SERIAL_TIMEOUT)
+                    self.set_time(self.timeout)
                     break
             return self.flag
 
-    def reading(self, pk, input_pass):
-        test = f'{pk} 01 02 {input_pass}'
-        transfer = bytearray.fromhex(test + ' ' + crc16(bytearray.fromhex(test)))
-        sys.stdout.write(f'{c.WARNING}Пробуем пароль - {input_pass}{c.END}\r')
-        sys.stdout.flush()
+    def reading(self, pk, input_pass=None):
+        test = f'{pk} 01 02 {input_pass} '
+        transfer = bytearray.fromhex(test + crc16(bytearray.fromhex(test)))
+        sys.stdout.write(f'Пробуем пароль - {input_pass}\r')
         self.write(transfer)
         buffer = self.read(4)
         while buffer:
             print(f"Ответ от устройства >> {buffer.hex(' ', -1)}\n")
-            print(f'{c.GREEN}Пароль найден - {input_pass}{c.END}')
+            print(f'Пароль найден - {input_pass}')
             return True
         return False
 
     def brut_password(self):
-        start_passwd = cfg.START_PASSWORD
-        stop_passwd = cfg.STOP_PASSWORD
-        while start_passwd <= stop_passwd:
-            if cfg.PASS_MODE == 'hex':
-                hex_password = ' '.join((format(int(i), '02X')) for i in str(start_passwd))
-            elif cfg.PASS_MODE == 'ascii':
-                hex_password = ' '.join((format(ord(i), '02X')) for i in str(start_passwd))
+        while self.start_passwd <= self.stop_passwd:
+            if self.pass_mode == 'hex':
+                hex_password = ' '.join((format(int(i), '02X')) for i in str(self.start_passwd))
+            elif self.pass_mode == 'ascii':
+                hex_password = ' '.join((format(ord(i), '02X')) for i in str(self.start_passwd))
             else:
                 print('Pass_mode is None..')
                 sys.exit()
             if self.flag:
-                if self.reading(cfg.PK, hex_password):
+                if self.reading(self.id, hex_password):
                     return
-                start_passwd += 2 if str(start_passwd)[5] == '9' else 1
+                if str(self.start_passwd)[3:] == '000':
+                    print('Пауза 5 сек...')
+                    sleep(5)
+                    if not self.test(self.id):
+                        sys.exit()
+                # start_passwd += 2 if str(start_passwd)[5] == '9' else 1
+                self.start_passwd += 1
             else:
                 sys.exit()
