@@ -1,8 +1,8 @@
-START_PASSWORD = 139240
+START_PASSWORD = 221900
 STOP_PASSWORD = 999999
 PASS_MODE = 'hex'   # 'hex' or 'ascii'
-PK = 42  # Default '0'
-SERIAL_TIMEOUT = .7
-PORT = 'COM20'   # Serial port Linux-'/dev/tty' Windows-'COM1'
-CSD = True  # CSD mode
+PK = 0  # Default '0'
+SERIAL_TIMEOUT = .1
+PORT = '/dev/ttyUSB0'   # Serial port Linux-'/dev/tty' Windows-'COM1'
+MODE = 0  # 0-RS485, 1-CSD, 2-TCP
 PHONE = ''  # if CSD==True
