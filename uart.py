@@ -1,8 +1,17 @@
 import sys
+import os
+from sys import platform
+try:
+    import serial
+except ImportError:
+    if platform.startswith('win'):
+        os.system('py -m pip install pyserial')
+    else:
+        os.system('python3 -m pip install pyserial')
+
 import serial
 from serial.serialutil import SerialException
 import serial.tools.list_ports
-
 # sudo nano /etc/udev/rules.d/50-myusb.rules
 # KERNEL=="ttyUSB[0-9]*",MODE="0666"
 # KERNEL=="ttyACM[0-9]*",MODE="0666"
@@ -13,6 +22,7 @@ class UartSerialPort:
 
     def __init__(self, port_name, port_timeout):
         self.list_port()
+        self.data = None
         try:
             self.sp = serial.Serial(
                 port=port_name,
@@ -30,17 +40,17 @@ class UartSerialPort:
     def __str__(self):
         return f'Port {self.sp.port} open' if self.sp else 'Port not opened or port no available'
 
-    def write(self, data):
-        try:
-            return self.sp.write(data)
-        except AttributeError:
-            return False
-
-    def read(self, count):
-        try:
-            return self.sp.read(count)
-        except AttributeError:
-            return False
+    # def write(self, data):
+    #     try:
+    #         return self.sp.write(data)
+    #     except AttributeError:
+    #         return False
+    #
+    # def read(self, count):
+    #     try:
+    #         return self.sp.read(count)
+    #     except AttributeError:
+    #         return False
 
     @staticmethod
     def list_port():
