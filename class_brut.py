@@ -24,14 +24,14 @@ class Exchange(UartSerialPort):
         self.PHONE = cfg.CSD_PHONE
         self.CSD_TIMEOUT = cfg.CSD_TIMEOUT
         self.CALL = {'AT': 'AT\r', 'CBST': 'AT+CBST=71,0,1\r', 'CALL': f'ATD{self.PHONE}\r'}
-        self.id = format(cfg.PK, '02X')
+        self.id = format(cfg.DEVICE_ID, '02X')
 
         self.timeout = cfg.SERIAL_TIMEOUT
         self.start_passwd = cfg.START_PASSWORD
         self.stop_passwd = cfg.STOP_PASSWORD
-        self.pass_mode = cfg.PASS_MODE
+        self.pass_mode = cfg.DEVICE_PASSWORD_MODE
 
-        self.mode = cfg.MODE
+        self.mode = cfg.CONNECT_MODE
 
         self.s = None
         self.TCP_HOST = cfg.TCP_HOST
