@@ -1,6 +1,7 @@
 import sys
 import os
 from sys import platform
+import config as cfg
 try:
     import serial
 except ImportError:
@@ -18,39 +19,41 @@ import serial.tools.list_ports
 
 
 class UartSerialPort:
-    __slots__ = ('port_name', 'port_timeout', 'sp', 'data')
+    def __init__(self):
+        if cfg.CONNECT_MODE == 2:
+            return
+        else:
+            self.list_port()
+            try:
+                self.sp = serial.Serial(
+                    port=cfg.UART_PORT,
+                    baudrate=9600,
+                    parity=serial.PARITY_NONE,
+                    stopbits=serial.STOPBITS_ONE,
+                    bytesize=serial.EIGHTBITS,
+                    timeout=cfg.UART_PORT_TIMEOUT
+                )
+            except SerialException:
+                print(f'Port {cfg.UART_PORT} not opened or port no available.')
+                self.sp = None
+                sys.exit()
 
-    def __init__(self, port_name, port_timeout):
-        self.list_port()
-        self.data = None
-        try:
-            self.sp = serial.Serial(
-                port=port_name,
-                baudrate=9600,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE,
-                bytesize=serial.EIGHTBITS,
-                timeout=port_timeout
-            )
-        except SerialException as e:
-            print(f'Port {port_name} not opened or port no available.\n{e.args[1].split(":")[1].strip()}')
-            self.sp = None
-            sys.exit()
+            self.data = ''
 
     def __str__(self):
         return f'Port {self.sp.port} open' if self.sp else 'Port not opened or port no available'
 
-    # def write(self, data):
-    #     try:
-    #         return self.sp.write(data)
-    #     except AttributeError:
-    #         return False
-    #
-    # def read(self, count):
-    #     try:
-    #         return self.sp.read(count)
-    #     except AttributeError:
-    #         return False
+        # def write(self, data):
+        #     try:
+        #         return self.sp.write(data)
+        #     except AttributeError:
+        #         return False
+        #
+        # def read(self, count):
+        #     try:
+        #         return self.sp.read(count)
+        #     except AttributeError:
+        #         return False
 
     @staticmethod
     def list_port():
@@ -58,9 +61,9 @@ class UartSerialPort:
         print('=' * 28, 'Default ports', '=' * 28)
         for port in ports:
             print(f'{port}')
-        print('='*71, '\n')
+        print('=' * 71, '\n')
 
-#   =========== From CSD terminal settings ================
+    #   =========== From CSD terminal settings ================
 
     def CSD_send(self, string):
         send_string = bytearray(string, encoding='ascii')

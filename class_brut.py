@@ -18,15 +18,15 @@ from progress.bar import IncrementalBar
 
 
 class Exchange(UartSerialPort):
-    def __init__(self, port_name, port_timeout):
-        super().__init__(port_name, port_timeout)
+    def __init__(self):
+        super().__init__()
 
         self.PHONE = cfg.CSD_PHONE
         self.CSD_TIMEOUT = cfg.CSD_TIMEOUT
         self.CALL = {'AT': 'AT\r', 'CBST': 'AT+CBST=71,0,1\r', 'CALL': f'ATD{self.PHONE}\r'}
         self.id = format(cfg.DEVICE_ID, '02X')
 
-        self.timeout = cfg.SERIAL_TIMEOUT
+        self.timeout = cfg.UART_PORT_TIMEOUT
         self.start_passwd = cfg.START_PASSWORD
         self.stop_passwd = cfg.STOP_PASSWORD
         self.pass_mode = cfg.DEVICE_PASSWORD_MODE
